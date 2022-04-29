@@ -15,7 +15,7 @@ void main() {
           )
       ),
   ),
-    nextScreen: Baseapp(),
+    nextScreen: inputPRNPage(),
     splashTransition: SplashTransition.fadeTransition,
     backgroundColor: Colors.white,
     duration: 4000,
@@ -26,6 +26,8 @@ void main() {
 //should become an animation page
 
 class Baseapp extends StatelessWidget{
+  late final String PRN;
+  Baseapp({String? key, required this.PRN}) : super();
   @override
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([
@@ -56,12 +58,12 @@ class Baseapp extends StatelessWidget{
               print("Button presses");
               if(n == 10){//affordability page
                 Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => Baseapp()
+                    builder: (context) => Baseapp(PRN: "-1",)
               )
                 );
             }else{//goto home page
                 Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => Baseapp()
+                    builder: (context) => Baseapp(PRN: "-1",)
               )
                 );
               }
@@ -92,9 +94,9 @@ class Baseapp extends StatelessWidget{
                 child: Center(
                   child: TextButton(
 
-                      child: Text(subjectNames[index].toString() + subjectAttendances[index].toString()),
+                      child: Text(subjectNames[index].toString() + "\nPRN : " + PRN + "\nAttendance :" + subjectAttendances[index].toString()),
                       onPressed: () => Navigator.push(context, MaterialPageRoute(
-                                        builder: (context) => Baseapp()
+                                        builder: (context) => Baseapp(PRN: "-1",)
                                         )
                   ),
 
@@ -109,3 +111,101 @@ class Baseapp extends StatelessWidget{
   }
 }
 
+class inputPRNPage extends StatefulWidget {
+  const inputPRNPage({Key? key}) : super(key: key);
+
+  @override
+  _inputPRNPage createState() => _inputPRNPage();
+}
+
+class _inputPRNPage extends State<inputPRNPage> {
+  // the result which will be displayed on the screen
+  String? _result;
+  // Create a text controller  to retrieve the value
+  final _textController = TextEditingController();
+
+  // the function which calculates square
+  void captureInput() {
+    // textController.text is a string and we have to convert it to double
+    final String? userInput = _textController.text.toString();
+    setState(() {
+      _result = userInput;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          flexibleSpace: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                    colors: [
+                      Colors.red,
+                      Colors.redAccent
+                    ]
+                ),
+              )
+          ),
+          centerTitle: true,
+          title: Text("Akatsuki Attendance System"),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // The user will type something here
+
+              TextField(
+                decoration: InputDecoration(
+                labelText: 'Enter PRN Number',
+                labelStyle: TextStyle(
+                    color: Colors.black
+                ),
+                enabledBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(width: 3, color: Colors.red),
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                focusedBorder: OutlineInputBorder(
+                borderSide: const BorderSide(width: 3, color: Colors.black),
+                borderRadius: BorderRadius.circular(15),
+                ),
+                ),
+                controller: _textController,
+
+              ),
+              SizedBox(height: 25),
+              ElevatedButton(
+
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                        (Set<MaterialState> states) {
+                      if (states.contains(MaterialState.pressed))
+                        return Colors.black;
+                      return Colors.red; // Use the component's default.
+                    },
+                  ),
+                ),
+                  onPressed: (){
+                    captureInput();
+                    print(_result);
+                    Navigator.push(context, MaterialPageRoute(
+                        builder: (context) => Baseapp(PRN: _result.toString())
+                    )
+                    );
+                  },
+                child: Text("Submit",
+                style: TextStyle(
+                fontSize: 20,
+                  fontStyle: FontStyle.italic
+                ),
+                ),
+
+              )
+            ],
+          ),
+        )
+    );
+  }
+}
