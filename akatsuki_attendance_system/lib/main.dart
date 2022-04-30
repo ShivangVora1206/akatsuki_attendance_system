@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
+import 'dart:io';
+import 'dart:convert';
 void main() {
   runApp( MaterialApp(
     home:AnimatedSplashScreen(
@@ -27,19 +29,68 @@ void main() {
 
 class Baseapp extends StatelessWidget{
   late final String PRN;
+  var subjectAttendances = [];
+  var subjectNames = [];
   Baseapp({String? key, required this.PRN}) : super();
   @override
+
+  void requester() async {
+    // produces a request object
+    var request = await HttpClient()
+        .getUrl(Uri.parse('http://10.0.0.6:8000/getStudentAttendance/$PRN'));
+// sends the request
+    var response = await request.close();
+// transforms and prints the response
+    await for (var contents in response.transform(Utf8Decoder())) {
+      String formattedContent = "";
+      var listSubKeyVal = [];
+
+      int i = 0;
+      for (i = 1; i < contents.length - 1; i++) {
+        formattedContent += contents[i];
+      }
+      List<String> subjectKeyValue = formattedContent.split(",");
+      for (i = 0; i < subjectKeyValue.length; i++) {
+        listSubKeyVal.add(subjectKeyValue[i].toString().split(":"));
+      }
+      print(listSubKeyVal);
+
+
+      for (int i = 0; i < listSubKeyVal.length; i++) {
+        subjectAttendances.add(listSubKeyVal[i][1]);
+      }
+      for (int i = 0; i < listSubKeyVal.length; i++) {
+        subjectNames.add(listSubKeyVal[i][0]);
+      }
+      print(subjectNames);
+      print(subjectAttendances);
+    }
+  }
+
+
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
     int n = 0;
-    final List<int> subjectAttendances = <int>[1, 2, 3, 4, 5];
-    final List<String> subjectNames = <String>['sub1',
-      'sub2',
-      'sub3',
-      'sub4',
-      'sub5'];
+    requester();
+    // final List<int> _subjectAttendances = subjectAttendances.cast<int>();
+    // final List<String> _subjectNames = subjectNames.cast<String>();
+
+     List<int>  _subjectAttendances = subjectAttendances.cast<int>();
+     List<String> _subjectNames = subjectNames.cast<String>();
+
+
+  print("after rquester");
+
+    // final List<int> _subjectAttendances = <int>[1, 2, 3, 4, 5];
+    // final List<String> _subjectNames = <String>['sub1',
+    //   'sub2',
+    //   'sub3',
+    //   'sub4',
+    //   'sub5'];
+
+
     return Container(
       decoration: BoxDecoration(
         gradient: RadialGradient(
@@ -87,14 +138,14 @@ class Baseapp extends StatelessWidget{
           backgroundColor: Colors.transparent,
           body: ListView.separated(
             padding: const EdgeInsets.all(8),
-            itemCount: subjectAttendances.length,
+            itemCount: _subjectAttendances.length,
             itemBuilder: (BuildContext context, int index) {
               return Container(
                 height: 250,
                 child: Center(
                   child: TextButton(
 
-                      child: Text(subjectNames[index].toString() + "\nPRN : " + PRN + "\nAttendance :" + subjectAttendances[index].toString()),
+                      child: Text(_subjectNames[index].toString() + "\nPRN : " + PRN + "\nAttendance :" + _subjectAttendances[index].toString()),
                       onPressed: () => Navigator.push(context, MaterialPageRoute(
                                         builder: (context) => Baseapp(PRN: "-1",)
                                         )
