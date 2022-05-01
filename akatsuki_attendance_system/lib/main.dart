@@ -1,8 +1,13 @@
+// ignore_for_file: prefer_const_constructors
+
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
-import 'dart:io';
-import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+import 'function.dart';
 void main() {
   runApp( MaterialApp(
     home:AnimatedSplashScreen(
@@ -27,53 +32,30 @@ void main() {
 }
 //should become an animation page
 
-class Baseapp extends StatelessWidget{
+
+
+class Baseapp extends StatefulWidget{
   late final String PRN;
-  var subjectAttendances = [];
-  var subjectNames = [];
   Baseapp({String? key, required this.PRN}) : super();
+
   @override
+  State<Baseapp> createState() => _BaseappState(PRN: PRN);
+}
 
-  void requester() async {
-    // produces a request object
-    var request = await HttpClient()
-        .getUrl(Uri.parse('http://10.0.0.6:8000/getStudentAttendance/$PRN'));
-// sends the request
-    var response = await request.close();
-// transforms and prints the response
-    await for (var contents in response.transform(Utf8Decoder())) {
-      String formattedContent = "";
-      var listSubKeyVal = [];
-
-      int i = 0;
-      for (i = 1; i < contents.length - 1; i++) {
-        formattedContent += contents[i];
-      }
-      List<String> subjectKeyValue = formattedContent.split(",");
-      for (i = 0; i < subjectKeyValue.length; i++) {
-        listSubKeyVal.add(subjectKeyValue[i].toString().split(":"));
-      }
-      print(listSubKeyVal);
-
-
-      for (int i = 0; i < listSubKeyVal.length; i++) {
-        subjectAttendances.add(listSubKeyVal[i][1]);
-      }
-      for (int i = 0; i < listSubKeyVal.length; i++) {
-        subjectNames.add(listSubKeyVal[i][0]);
-      }
-      print(subjectNames);
-      print(subjectAttendances);
-    }
-  }
-
-
+class _BaseappState extends State<Baseapp> {
+  late final String PRN;
+  _BaseappState({String? key, required this.PRN}) : super();
+  var subjectNames = [];
+  var subjectAttendances = [];
+  var data;
+  var output = 0;
+    int n = 0;
+  @override
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
-    int n = 0;
-    requester();
+
     // final List<int> _subjectAttendances = subjectAttendances.cast<int>();
     // final List<String> _subjectNames = subjectNames.cast<String>();
 
@@ -81,7 +63,6 @@ class Baseapp extends StatelessWidget{
      List<String> _subjectNames = subjectNames.cast<String>();
 
 
-  print("after rquester");
 
     // final List<int> _subjectAttendances = <int>[1, 2, 3, 4, 5];
     // final List<String> _subjectNames = <String>['sub1',
@@ -104,20 +85,15 @@ class Baseapp extends StatelessWidget{
       child: Scaffold(
           floatingActionButton: FloatingActionButton(
             backgroundColor: Colors.red,
-            onPressed: (){
-              n++;
-              print("Button presses");
-              if(n == 10){//affordability page
-                Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => Baseapp(PRN: "-1",)
-              )
-                );
-            }else{//goto home page
-                Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => Baseapp(PRN: "-1",)
-              )
-                );
-              }
+            onPressed: () async {
+              data = await fetchdata("http://10.0.0.6:8000/getStudentAttendance/1951721245049");
+              var decoded = jsonDecode(data);
+              setState(() {
+                //shivang module unfinished
+                output = decoded['sub2'];
+                print('before output print');
+                print(output);
+              });
             },
             child: Icon(Icons.home_filled),
           ),
@@ -145,7 +121,7 @@ class Baseapp extends StatelessWidget{
                 child: Center(
                   child: TextButton(
 
-                      child: Text(_subjectNames[index].toString() + "\nPRN : " + PRN + "\nAttendance :" + _subjectAttendances[index].toString()),
+                      child: Text(_subjectNames[index].toString() + "\nPRN : " + widget.PRN + "\nAttendance :" + _subjectAttendances[index].toString()),
                       onPressed: () => Navigator.push(context, MaterialPageRoute(
                                         builder: (context) => Baseapp(PRN: "-1",)
                                         )
