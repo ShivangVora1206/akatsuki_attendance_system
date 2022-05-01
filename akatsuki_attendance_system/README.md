@@ -1,7 +1,7 @@
 # akatsuki_attendance_system
 
 Akatsuki Attendance System Flutter Project
-
+-By Akatsuki Coding Club, RCPIT, Shirpur
 ## Getting Started
 
 This project is a starting point for a Flutter application.
