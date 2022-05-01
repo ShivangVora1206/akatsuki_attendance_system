@@ -35,7 +35,7 @@ void main() {
 
 
 class Baseapp extends StatefulWidget{
-  late final String PRN;
+  late final String? PRN;
   Baseapp({String? key, required this.PRN}) : super();
 
   @override
@@ -43,10 +43,15 @@ class Baseapp extends StatefulWidget{
 }
 
 class _BaseappState extends State<Baseapp> {
-  late final String PRN;
+  late final String? PRN;
+  // ignore: non_constant_identifier_names, unused_element
   _BaseappState({String? key, required this.PRN}) : super();
-  var subjectNames = [];
-  var subjectAttendances = [];
+  String? studentName ;
+  String? studentPRN ;
+  String? studentRollNo ;
+  int packetSize = 0;
+  List subjectNames = [];
+  List subjectAttendances = [];
   var data;
   var output = 0;
     int n = 0;
@@ -59,8 +64,8 @@ class _BaseappState extends State<Baseapp> {
     // final List<int> _subjectAttendances = subjectAttendances.cast<int>();
     // final List<String> _subjectNames = subjectNames.cast<String>();
 
-     List<int>  _subjectAttendances = subjectAttendances.cast<int>();
-     List<String> _subjectNames = subjectNames.cast<String>();
+     List<int?>  _subjectAttendances = subjectAttendances.cast<int?>();
+     List<String?> _subjectNames = subjectNames.cast<String?>();
 
 
 
@@ -86,15 +91,25 @@ class _BaseappState extends State<Baseapp> {
           floatingActionButton: FloatingActionButton(
             backgroundColor: Colors.red,
             onPressed: () async {
-              data = await fetchdata("http://10.0.0.6:8000/getStudentAttendance/1951721245049");
+              data = await fetchdata("http://10.0.0.3:8000/getStudentData/$PRN");
               var decoded = jsonDecode(data);
+              print("pressed");
               setState(() {
-                //shivang module unfinished
-                output = decoded['sub2'];
-                print('before output print');
-                print(output);
+                subjectNames.clear();
+                subjectAttendances.clear();
+
+                studentName = decoded['studentName'];
+                print(studentName);
+                studentPRN = decoded['studentPRN'].toString();
+                studentRollNo = decoded['studentRollNo'].toString();
+                packetSize = int.parse(decoded['packetSize']);
+                for(int i=1;i<=packetSize;i++){
+                  subjectAttendances.add(decoded['sub'+i.toString()]);
+                  subjectNames.add("sub"+i.toString());
+                }
               });
-            },
+            },//shivang module partially finished
+            //logic is functional now I need to figure out to make this run without a button press
             child: Icon(Icons.home_filled),
           ),
           appBar: AppBar(
@@ -121,7 +136,7 @@ class _BaseappState extends State<Baseapp> {
                 child: Center(
                   child: TextButton(
 
-                      child: Text(_subjectNames[index].toString() + "\nPRN : " + widget.PRN + "\nAttendance :" + _subjectAttendances[index].toString()),
+                      child: Text(_subjectNames[index].toString() + "\nAttendance :" + _subjectAttendances[index].toString()),
                       onPressed: () => Navigator.push(context, MaterialPageRoute(
                                         builder: (context) => Baseapp(PRN: "-1",)
                                         )
